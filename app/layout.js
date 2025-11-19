@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/lib/cartContext";
 import ConditionalLayout from "@/components/layout/ConditionalLayout";
+export const dynamic = "force-dynamic";
 
 
 const poppins = Poppins({

@@ -134,7 +134,7 @@ const ProductCard = ({ product }) => {
         
         <Link href={`/products/${productId}`} className="block w-full h-full">
           <Image
-            src={product.image || product.images?.[0] || '/placeholder.jpg'}
+            src={encodeURI(product.image || product.images?.[0] || '/placeholder.jpg')}
             alt={product.name}
             fill
             sizes="(max-width: 768px) 50vw, 25vw"
