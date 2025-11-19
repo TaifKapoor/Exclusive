@@ -14,7 +14,7 @@ export async function GET(request, { params }) {
     console.log('GET /api/orders/[id] → Searching for order:', id);
 
    
-    const order = await Order.findOne({ orderId: id }).lean();
+    let order = await Order.findOne({ orderId: id }).lean();
 
     if (!order && mongoose.Types.ObjectId.isValid(id)) {
       order = await Order.findById(id).lean();

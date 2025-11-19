@@ -34,7 +34,7 @@ export async function GET() {
               }
             }
           },
-          sales: '$totalAmount'
+          sales: '$total'
         }
       }
     ]);
