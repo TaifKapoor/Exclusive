@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 const ProductCard = ({ product }) => {
   const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const productId = product.id;
 
 
@@ -30,7 +31,7 @@ const ProductCard = ({ product }) => {
       const data = await res.json();
       if (res.ok) {
         toast.success('Added to wishlist! ');
-      
+
         window.dispatchEvent(new Event("wishlistUpdated"));
       } else {
         toast.error(data.error || 'Failed');
@@ -42,7 +43,7 @@ const ProductCard = ({ product }) => {
     }
   };
 
- 
+
   const addToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -81,11 +82,10 @@ const ProductCard = ({ product }) => {
       <Star
         key={i}
         size={16}
-        className={`transition-all ${
-          i < Math.round(rating)
+        className={`transition-all ${i < Math.round(rating)
             ? "fill-amber-400 text-amber-400"
             : "fill-gray-200 text-gray-300"
-        }`}
+          }`}
       />
     ));
   };
@@ -95,10 +95,15 @@ const ProductCard = ({ product }) => {
       whileHover={{ y: -12 }}
       transition={{ duration: 0.4 }}
       className="group relative bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100"
+     
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={() => setIsHovered(true)}   
+      onTouchEnd={() => setTimeout(() => setIsHovered(false), 2000)}
     >
       <div className="relative aspect-square bg-gradient-to-br from-gray-50 via-white to-gray-100 overflow-hidden">
 
-        
+  
         {product.discount > 0 && (
           <motion.span
             initial={{ scale: 0 }}
@@ -109,8 +114,13 @@ const ProductCard = ({ product }) => {
           </motion.span>
         )}
 
-       
-        <div className="absolute top-5 right-5 flex flex-col gap-3 opacity-0 group-hover:opacity-100 transition-all duration-500 z-30 translate-x-16 group-hover:translate-x-0">
+        
+        <div
+          className={`absolute top-5 right-5 flex flex-col gap-3 z-30 transition-all duration-500 ${isHovered
+              ? 'opacity-100 translate-x-0'
+              : 'opacity-0 translate-x-16'
+            }`}
+        >
           <button
             onClick={addToWishlist}
             disabled={isAddingToWishlist}
@@ -119,7 +129,7 @@ const ProductCard = ({ product }) => {
             {isAddingToWishlist ? (
               <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
             ) : (
-              <Heart size={22} className="transition-all" />
+              <Heart size={22} className={`transition-all ${isAddingToWishlist ? 'fill-red-500' : ''}`} />
             )}
           </button>
 
@@ -142,9 +152,10 @@ const ProductCard = ({ product }) => {
           />
         </Link>
 
-      
+        
         <motion.div
-          className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out"
+          className={`absolute inset-x-0 bottom-0 transition-transform duration-500 ease-out ${isHovered ? 'translate-y-0' : 'translate-y-full'
+            }`}
           initial={false}
         >
           <motion.button
@@ -168,7 +179,7 @@ const ProductCard = ({ product }) => {
         </motion.div>
       </div>
 
-     
+
       <div className="p-6 space-y-4 bg-white">
         <Link href={`/products/${productId}`}>
           <h3 className="font-bold text-xl text-gray-900 line-clamp-2 hover:text-red-600 transition-colors">

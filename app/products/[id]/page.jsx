@@ -57,7 +57,7 @@ export default function ProductDetailPage({ params }) {
 
         if (relatedRes.ok) {
           const data = await relatedRes.json();
-          setRelatedProducts(data.filter(p => p._id !== id));
+          setRelatedProducts(data.filter(p => p.id !== id));
         }
       } catch (error) {
         toast.error('Failed to load product');
@@ -117,21 +117,24 @@ export default function ProductDetailPage({ params }) {
   const handleAddToCart = async () => {
     setIsAddingToCart(true);
     try {
+      const productId = product.id;
+
       const res = await fetch('/api/cart', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: product._id || product.id, quantity: 1 }),
+        body: JSON.stringify({ productId, quantity: 1 }),
         credentials: 'include'
       });
 
       if (res.ok) {
-        toast.success('Added to cart!', { icon: 'Success' });
+        toast.success('Added to cart!');
         window.dispatchEvent(new Event('cartUpdated'));
       } else if (res.status === 401) {
         toast.error('Please login first!');
         window.location.href = '/login';
       } else {
-        toast.error('Failed to add to cart');
+        const error = await res.json();
+        toast.error(error.error || 'Failed to add to cart');
       }
     } catch {
       toast.error('Something went wrong');
@@ -143,16 +146,35 @@ export default function ProductDetailPage({ params }) {
   const handleAddToWishlist = async () => {
     setIsAddingToWishlist(true);
     try {
+      const productId = product.id;
+
       const res = await fetch('/api/wishlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: product._id || product.id }),
+        body: JSON.stringify({ productId }),
         credentials: 'include'
       });
-      if (res.ok) toast.success('Added to wishlist!', { icon: 'Success' });
-      else toast.error('Failed to add to wishlist');
-    } catch {
-      toast.error('Something went wrong');
+
+      let data = {};
+
+      try {
+        data = await res.json();
+      } catch (jsonError) {
+        console.warn("Failed to parse JSON response on error:", jsonError);
+      }
+
+      if (res.ok) {
+        toast.success('Added to wishlist!');
+        window.dispatchEvent(new Event('wishlistUpdated'));
+      } else if (res.status === 401) {
+        toast.error('Please login first!');
+        window.location.href = '/login';
+      } else {
+        toast.error(data.error || 'Failed to add to wishlist.');
+      }
+    } catch (err) {
+      console.error("Wishlist error:", err);
+      toast.error('Something went wrong, please try again.');
     } finally {
       setIsAddingToWishlist(false);
     }
@@ -177,14 +199,14 @@ export default function ProductDetailPage({ params }) {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
 
-          
+
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
             className="space-y-6"
           >
-          
+
             <div className="relative bg-white/80 backdrop-blur-2xl rounded-3xl overflow-hidden shadow-2xl border border-white/50">
               <Image
                 src={images[mainImageIndex]}
@@ -195,7 +217,7 @@ export default function ProductDetailPage({ params }) {
                 priority
               />
 
-             
+
               {images.length > 1 && (
                 <>
                   <button
@@ -214,7 +236,7 @@ export default function ProductDetailPage({ params }) {
               )}
             </div>
 
-            
+
             <div className="grid grid-cols-5 gap-4">
               {images.map((img, i) => (
                 <motion.button
@@ -239,7 +261,7 @@ export default function ProductDetailPage({ params }) {
             </div>
           </motion.div>
 
-          
+
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -253,7 +275,7 @@ export default function ProductDetailPage({ params }) {
               <StarRating rating={product.rating || 4.8} reviews={product.reviews || 342} />
             </div>
 
-            
+
             <div className="flex items-baseline gap-4">
               <span className="text-5xl font-black text-purple-700">
                 ${Number(product.price).toFixed(2)}
@@ -274,7 +296,7 @@ export default function ProductDetailPage({ params }) {
 
             <hr className="border-gray-200" />
 
-            
+
             <div className="flex gap-4">
               <motion.button
                 whileHover={{ scale: 1.02 }}
@@ -296,13 +318,25 @@ export default function ProductDetailPage({ params }) {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={handleAddToWishlist}
-                className="p-5 bg-white border-2 border-purple-600 rounded-2xl shadow-xl hover:bg-purple-50 transition"
+                disabled={isAddingToWishlist}
+                className="p-5 bg-white border-2 border-purple-600 rounded-2xl shadow-xl hover:bg-purple-50 transition relative"
               >
-                <Heart size={28} className={isAddingToWishlist ? 'fill-purple-600 text-purple-600' : 'text-purple-600'} />
+                <Heart
+                  size={28}
+                  className={`transition-all ${isAddingToWishlist
+                    ? 'fill-purple-600 text-purple-600 animate-pulse'
+                    : 'text-purple-600 hover:fill-purple-600'
+                    }`}
+                />
+                {isAddingToWishlist && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-6 h-6 border-4 border-purple-600 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                )}
               </motion.button>
             </div>
 
-     
+
             <div className="grid grid-cols-1 gap-6 bg-white/70 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/50">
               <div className="flex gap-4">
                 <div className="p-4 bg-green-100 rounded-2xl">
@@ -335,7 +369,7 @@ export default function ProductDetailPage({ params }) {
           </motion.div>
         </div>
 
-        
+
         {relatedProducts.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 50 }}
@@ -346,7 +380,7 @@ export default function ProductDetailPage({ params }) {
             <h2 className="text-4xl font-black text-center mb-12 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               You Might Also Like
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
               {relatedProducts.map((p, i) => (
                 <motion.div
                   key={p._id}
