@@ -23,9 +23,9 @@ export default function SalesChart() {
               fullMonth: month,
               sales: Number(sales) || 0,
             }))
-            .sort((a, b) => new Date(a.fullMonth) - new Date(b.fullMonth)); order
+            .sort((a, b) => new Date(a.fullMonth) - new Date(b.fullMonth)); // Chronological order
         } else {
-         
+          // Fallback logic
           fetch('/api/orders')
             .then(r => r.json())
             .then(orders => {
@@ -121,7 +121,7 @@ export default function SalesChart() {
       transition={{ duration: 0.8 }}
       className="bg-white/10 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden"
     >
-      {/* Header */}
+      
       <div className="p-6 sm:p-8 border-b border-white/10">
         <div className="flex flex-col gap-6">
           <div>
@@ -138,7 +138,6 @@ export default function SalesChart() {
             </p>
           </div>
 
-         
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -159,7 +158,7 @@ export default function SalesChart() {
         </div>
       </div>
 
-      
+     
       <div className="p-4 sm:p-8">
         <ResponsiveContainer width="100%" height={320}>
           <AreaChart data={data} margin={{ top: 20, right: 20, left: 0, bottom: 10 }}>
@@ -197,7 +196,7 @@ export default function SalesChart() {
         </ResponsiveContainer>
       </div>
 
-     
+  
       <div className="px-6 pb-6 sm:px-8 sm:pb-8">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
